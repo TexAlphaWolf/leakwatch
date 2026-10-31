@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Lint e test (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            app/requirements.txt
+            app/requirements-dev.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Ruff (lint)
+        run: ruff check leakwatch tests
+      - name: Ruff (formattazione)
+        run: ruff format --check leakwatch tests
+      - name: Pytest
+        run: pytest -v
+      - name: Sintassi JavaScript della dashboard
+        run: node --check leakwatch/static/app.js
+
+  shell:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: shellcheck -S warning leakwatch.sh
+
+  docker:
+    name: Compose e build delle immagini
+    runs-on: ubuntu-latest
+    env:
+      SEARXNG_SECRET: ci-placeholder-not-a-secret
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validazione compose
+        run: |
+          docker compose config -q
+          mkdir -p secrets && echo placeholder > secrets/lw_passphrase.txt
+          COMPOSE_FILE=docker-compose.yml:docker-compose.autounlock.yml docker compose config -q
+      - name: Build
+        run: docker compose build app tor

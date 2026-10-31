@@ -1,0 +1,12 @@
+# Proxy SOCKS raggiungibile solo dalla rete interna di Docker.
+# IsolateDestAddr: circuiti separati per ogni destinazione,
+# così servizi diversi non vedono lo stesso nodo di uscita.
+SocksPort 0.0.0.0:9050 IsolateDestAddr
+SocksPolicy accept 10.0.0.0/8
+SocksPolicy accept 172.16.0.0/12
+SocksPolicy accept 192.168.0.0/16
+SocksPolicy reject *
+
+# Nessun file di log su disco
+Log notice stdout
+DataDirectory /tmp/tor

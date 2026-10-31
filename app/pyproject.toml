@@ -1,0 +1,30 @@
+[project]
+name = "leakwatch"
+version = "1.0.0"
+description = "Self-hosted, Tor-routed personal data leak monitor with encrypted vault and Telegram alerts."
+requires-python = ">=3.12"
+license = "MIT"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = [
+  "S101",    # assert nei test
+  "S104",    # bind 0.0.0.0 solo dentro il container (porta pubblicata su 127.0.0.1)
+  "S311",    # random per il jitter, non per la crittografia
+  "S324",    # SHA-1 richiesto dal protocollo k-anonymity di Pwned Passwords
+  "RUF001",  # caratteri unicode voluti nei testi italiani
+  "RUF002",
+  "RUF003",
+  "B904",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

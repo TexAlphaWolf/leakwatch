@@ -1,0 +1,98 @@
+name: leakwatch
+
+# Log di Docker limitati: niente file che crescono all'infinito sul server
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "1m"
+    max-file: "2"
+
+x-hardening: &hardening
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped        # riparte da solo dopo crash e riavvii del server
+  logging: *logging
+
+services:
+  tor:
+    <<: *hardening
+    build: ./tor
+    networks: [internal, egress]
+    read_only: true
+    tmpfs:
+      - /tmp                     # stato di Tor solo in RAM
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9050"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  searxng:
+    <<: *hardening
+    image: searxng/searxng:latest
+    networks: [internal]         # nessuna uscita diretta: solo via Tor
+    depends_on:
+      tor:
+        condition: service_healthy
+    environment:
+      - SEARXNG_SECRET=${SEARXNG_SECRET:?Imposta SEARXNG_SECRET nel file .env}
+    volumes:
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+    tmpfs:
+      - /var/cache/searxng
+    cap_add: [CHOWN, SETGID, SETUID]
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+
+  app:
+    <<: *hardening
+    build: ./app
+    depends_on:
+      tor:
+        condition: service_healthy
+      searxng:
+        condition: service_started
+    networks: [internal, frontend]
+    ports:
+      - "127.0.0.1:8765:8765"    # solo dal server stesso: dal PC usa il tunnel SSH
+    environment:
+      - TZ=${TZ:-Europe/Rome}
+      - LW_REQUIRE_TOR=true
+      - LW_RETENTION_HOURS=24
+      - LW_FINGERPRINT_DAYS=30
+      - LW_STORE_PROFILE=true
+      - LW_AUTO_LOCK_MINUTES=30
+      - LW_AUTO_SCAN_HOURS=24              # scansione automatica ogni 24h (0 = solo manuale)
+      - LW_AUTO_SCAN_JITTER_MINUTES=90     # orario variabile di ±90 minuti
+      - LW_MAX_PAGES=25
+      - LW_TELEGRAM_TOKEN=${LW_TELEGRAM_TOKEN:-}
+      - LW_TELEGRAM_CHAT_ID=${LW_TELEGRAM_CHAT_ID:-}
+      - LW_TELEGRAM_QUIET=${LW_TELEGRAM_QUIET:-false}
+    volumes:
+      - leakwatch-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8765/healthz', timeout=4)"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  internal:
+    internal: true               # nessun accesso a Internet
+  egress: {}                     # solo Tor esce da qui
+  frontend: {}                   # serve solo per pubblicare la porta su 127.0.0.1
+
+volumes:
+  leakwatch-data: {}

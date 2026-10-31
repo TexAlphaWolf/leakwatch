@@ -1,0 +1,27 @@
+# SearXNG privato: raggiungibile solo dall'app, esce SOLO via Tor.
+use_default_settings: true
+
+general:
+  instance_name: "leakwatch-search"
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  formats:
+    - html
+    - json
+
+server:
+  # La secret_key viene letta dalla variabile SEARXNG_SECRET (vedi docker-compose)
+  limiter: false
+  public_instance: false
+  image_proxy: false
+
+outgoing:
+  request_timeout: 12.0
+  max_request_timeout: 20.0
+  using_tor_proxy: true
+  extra_proxy_timeout: 10
+  proxies:
+    all://:
+      - socks5h://tor:9050

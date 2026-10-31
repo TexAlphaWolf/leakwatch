@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>LeakWatch</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot" id="dot"></span> LeakWatch</div>
+  <div class="meta" id="meta"></div>
+  <button class="ghost" id="btn-lock" hidden>Blocca</button>
+</header>
+
+<main>
+  <!-- Blocco -->
+  <section id="view-lock" class="card narrow" hidden>
+    <h1 id="lock-title">Sblocca</h1>
+    <p class="muted" id="lock-hint"></p>
+    <form id="form-lock">
+      <input type="password" id="pass" autocomplete="off" placeholder="Passphrase" required>
+      <input type="password" id="pass2" autocomplete="off" placeholder="Ripeti passphrase" hidden>
+      <button type="submit" id="btn-unlock">Sblocca</button>
+    </form>
+    <p class="error" id="lock-error"></p>
+  </section>
+
+  <!-- App -->
+  <div id="view-app" hidden>
+    <section class="card">
+      <div class="row-head">
+        <h2>Profilo</h2>
+        <span class="muted small">Cifrato con la tua passphrase. CF, documenti e data di nascita non escono mai dal computer.</span>
+      </div>
+      <form id="form-profile" class="grid">
+        <label>Nome<input name="first_name" autocomplete="off"></label>
+        <label>Cognome<input name="last_name" autocomplete="off"></label>
+        <label>Data di nascita<input name="birth_date" type="date"></label>
+        <label>Codice fiscale<input name="cf" autocomplete="off" maxlength="16"></label>
+        <label class="wide"><span>Email <span class="muted">(una per riga)</span></span>
+        <textarea name="emails" rows="2"></textarea></label>
+        <label class="wide">Telefoni<textarea name="phones" rows="2"></textarea></label>
+        <label class="wide"><span>Documenti <span class="muted">(carta d'identità, patente, passaporto)</span></span>
+        <textarea name="documents" rows="2"></textarea></label>
+        <label class="wide">Username<textarea name="usernames" rows="2"></textarea></label>
+        <div class="wide actions">
+          <button type="submit">Salva profilo</button>
+          <span class="small" id="profile-msg"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="row-head"><h2>Scansione</h2></div>
+      <label><span>Password da verificare <span class="muted">(opzionale, una per riga, mai salvate: viene inviato solo un frammento di hash)</span></span>
+        <textarea id="passwords" rows="2" autocomplete="off" spellcheck="false" class="secret"></textarea>
+      </label>
+      <div class="actions">
+        <button id="btn-scan">Avvia scansione</button>
+        <div class="progress"><div id="bar"></div></div>
+        <span class="small" id="scan-step"></span>
+      </div>
+      <p class="error" id="scan-error"></p>
+    </section>
+
+    <section class="card">
+      <div class="row-head">
+        <h2>Risultati</h2>
+        <span class="muted small" id="retention"></span>
+      </div>
+      <div class="filters" id="filters">
+        <button class="chip active" data-f="all">Tutti</button>
+        <button class="chip" data-f="alta">Alta</button>
+        <button class="chip" data-f="media">Media</button>
+        <button class="chip" data-f="bassa">Bassa</button>
+        <button class="chip" data-f="new">Solo nuovi</button>
+      </div>
+      <div id="results"></div>
+      <p class="muted small">I link non si aprono da qui: copiali e aprili in Tor Browser per non esporre il tuo IP.</p>
+    </section>
+
+    <section class="card danger-zone">
+      <h2>Controlli</h2>
+      <div class="actions">
+        <button class="ghost" id="btn-tg" hidden>Prova Telegram</button>
+        <button class="ghost" id="btn-purge">Cancella risultati ora</button>
+        <button class="ghost" id="btn-stop" hidden>Ferma scansioni automatiche</button>
+        <button class="danger" id="btn-wipe">Distruggi tutto</button>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

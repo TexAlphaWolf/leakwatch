@@ -1,0 +1,12 @@
+# Sblocco automatico dopo un riavvio del server.
+# Comodo ma meno sicuro: la passphrase sta in ./secrets/lw_passphrase.txt.
+# Attivalo con:  ./leakwatch.sh autounlock on
+services:
+  app:
+    environment:
+      - LW_UNLOCK_KEYFILE=/run/secrets/lw_passphrase
+    secrets: [lw_passphrase]
+
+secrets:
+  lw_passphrase:
+    file: ./secrets/lw_passphrase.txt
