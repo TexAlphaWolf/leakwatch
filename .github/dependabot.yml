@@ -12,6 +12,11 @@ updates:
     directories: [/app, /tor]
     schedule:
       interval: weekly
+    ignore:
+      # Una nuova versione di Python (es. 3.13 -> 3.15) si adotta a mano, quando
+      # tutte le dipendenze la supportano. Le patch di sicurezza arrivano comunque.
+      - dependency-name: python
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /

@@ -11,13 +11,13 @@ permissions:
 jobs:
   python:
     name: Lint e test (Python)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -36,18 +36,21 @@ jobs:
 
   shell:
     name: ShellCheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - run: shellcheck -S warning leakwatch.sh
+      - uses: actions/checkout@v7
+      - name: Installa ShellCheck (se manca)
+        run: command -v shellcheck || (sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck)
+      - run: shellcheck --version && shellcheck -S warning leakwatch.sh
 
   docker:
     name: Compose e build delle immagini
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       SEARXNG_SECRET: ci-placeholder-not-a-secret
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
+      - run: docker version --format '{{.Server.Version}}' && docker compose version
       - name: Validazione compose
         run: |
           docker compose config -q
